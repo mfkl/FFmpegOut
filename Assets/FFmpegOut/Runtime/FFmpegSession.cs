@@ -28,14 +28,23 @@ namespace FFmpegOut
             FFmpegPreset preset
         )
         {
-            return new FFmpegSession(
-                "-y -f rawvideo -vcodec rawvideo -pixel_format rgba"
-                + " -colorspace bt709"
-                + " -video_size " + width + "x" + height
-                + " -framerate " + frameRate
-                + " -loglevel verbose -i - " + preset.GetOptions()
-                + " \"" + outputPath + "\""
-            );
+            //.\ffmpeg.exe -f lavfi -i color=color=red - -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream
+            //ffmpeg -f rawvideo -pixel_format yuv420p -video_size 1920x1080 -framerate 30 -i - -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream
+            // var command = "-y -f rawvideo -vcodec rawvideo -pixel_format rgba"
+            //     + " -colorspace bt709"
+            //     + " -video_size " + width + "x" + height
+            //     + " -framerate " + frameRate
+            //     + " -loglevel verbose -i - -c:v h264_nvenc -preset:v fast -bf 2 -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream";// + preset.GetOptions()
+            //    + " \"" + outputPath + "\""
+            
+            // var command = $"-y -f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -re -i - -an -c:v copy -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
+
+
+            var command = $"-f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -c:v h264_nvenc -preset:v fast -bf 2 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
+
+            // -f lavfi -i color=color=red:s=1920x1080:r=30 
+            Debug.Log(command);
+            return new FFmpegSession(command);
         }
 
         public static FFmpegSession CreateWithArguments(string arguments)
