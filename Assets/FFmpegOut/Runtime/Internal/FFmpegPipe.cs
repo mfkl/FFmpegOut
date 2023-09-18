@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Text;
 using Unity.Collections;
 
 namespace FFmpegOut
@@ -15,6 +16,9 @@ namespace FFmpegOut
         public static bool IsAvailable {
             get { return System.IO.File.Exists(ExecutablePath); }
         }
+
+        StringBuilder output;
+        StringBuilder error;
 
         public FFmpegPipe(string arguments)
         {
@@ -28,6 +32,37 @@ namespace FFmpegOut
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             });
+
+
+            // logging stuff
+            output = new StringBuilder();
+            error = new StringBuilder();
+
+            _subprocess.OutputDataReceived += (sender, e) => 
+            {
+                if (e.Data == null)
+                {
+                    outputWaitHandle.Set();
+                }
+                else
+                {
+                    output.AppendLine(e.Data);
+                }
+            };
+            _subprocess.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data == null)
+                {
+                    errorWaitHandle.Set();
+                }
+                else
+                {
+                    error.AppendLine(e.Data);
+                }
+            };
+
+            _subprocess.BeginOutputReadLine();
+            _subprocess.BeginErrorReadLine();
 
             // Start copy/pipe subthreads.
             _copyThread = new Thread(CopyThread);
@@ -69,16 +104,27 @@ namespace FFmpegOut
 
             // Close FFmpeg subprocess.
             _subprocess.StandardInput.Close();
-            _subprocess.WaitForExit();
-
-            var outputReader = _subprocess.StandardError;
-            var error = outputReader.ReadToEnd();
+            if (_subprocess.WaitForExit(3000) &&
+            outputWaitHandle.WaitOne(3000) &&
+            errorWaitHandle.WaitOne(3000))
+            {
+                UnityEngine.Debug.Log("OK");
+                UnityEngine.Debug.Log(error.ToString());
+                // Process completed. Check process.ExitCode here.
+            }
+            else
+            {
+                UnityEngine.Debug.Log("timed out");
+                // Timed out.
+            }
+            // var outputReader = _subprocess.StandardError;
+            // var error = outputReader.ReadToEnd();
 
             _subprocess.Close();
             _subprocess.Dispose();
 
-            outputReader.Close();
-            outputReader.Dispose();
+            // outputReader.Close();
+            // outputReader.Dispose();
 
             // Nullify members (just for ease of debugging).
             _subprocess = null;
@@ -87,7 +133,7 @@ namespace FFmpegOut
             _copyQueue = null;
             _pipeQueue = _freeBuffer = null;
 
-            return error;
+            return null;
         }
 
         #endregion
@@ -122,6 +168,9 @@ namespace FFmpegOut
         AutoResetEvent _pipePing = new AutoResetEvent(false);
         AutoResetEvent _pipePong = new AutoResetEvent(false);
         bool _terminate;
+
+        AutoResetEvent outputWaitHandle = new AutoResetEvent(false);
+        AutoResetEvent errorWaitHandle = new AutoResetEvent(false);
 
         Queue<NativeArray<byte>> _copyQueue = new Queue<NativeArray<byte>>();
         Queue<byte[]> _pipeQueue = new Queue<byte[]>();

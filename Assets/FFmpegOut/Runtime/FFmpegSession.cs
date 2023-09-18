@@ -33,7 +33,7 @@ namespace FFmpegOut
                 + " -colorspace bt709"
                 + " -video_size " + width + "x" + height
                 + " -framerate " + frameRate
-                + " -loglevel warning -i - " + preset.GetOptions()
+                + " -loglevel verbose -i - " + preset.GetOptions()
                 + " \"" + outputPath + "\""
             );
         }
