@@ -24,7 +24,7 @@ namespace FFmpegOut
         {
             // Start FFmpeg subprocess.
             _subprocess = Process.Start(new ProcessStartInfo {
-                FileName = ExecutablePath,
+                FileName = "cmd.exe",
                 Arguments = arguments,
                 UseShellExecute = false,
                 CreateNoWindow = true,

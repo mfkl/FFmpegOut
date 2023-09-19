@@ -28,9 +28,12 @@ namespace FFmpegOut
             FFmpegPreset preset
         )
         {
+            var ffmpegPath = UnityEngine.Application.streamingAssetsPath + "/FFmpegOut/Windows/ffmpeg.exe";
+            var vlcPath = UnityEngine.Application.streamingAssetsPath + "/FFmpegOut/Windows/vlc.exe";
             // VLC udp://@:2222
-            var command = $"-y -f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -re -i - -an -c:v h264_nvenc -g 30 -keyint_min 30 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
+            var vlcCommand = "-vvvv - --sout '#rtp{dst=127.0.0.1,port=1234,sdp=rtsp://localhost:8080/test.sdp}'";
 
+            var command = $"\"{ffmpegPath}\" -y -f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -re -i - -an -c:v h264_nvenc -g 30 -keyint_min 30 -f mpegts -| \"{vlcPath}\" {vlcCommand}";
            // works
            // var command = "-f lavfi -i color=color=red:s=1920x1080:r=30 -c:v h264_nvenc -preset:v fast -bf 2 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
 
