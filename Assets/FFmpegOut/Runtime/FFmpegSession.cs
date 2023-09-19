@@ -28,21 +28,12 @@ namespace FFmpegOut
             FFmpegPreset preset
         )
         {
-            //.\ffmpeg.exe -f lavfi -i color=color=red - -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream
-            //ffmpeg -f rawvideo -pixel_format yuv420p -video_size 1920x1080 -framerate 30 -i - -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream
-            // var command = "-y -f rawvideo -vcodec rawvideo -pixel_format rgba"
-            //     + " -colorspace bt709"
-            //     + " -video_size " + width + "x" + height
-            //     + " -framerate " + frameRate
-            //     + " -loglevel verbose -i - -c:v h264_nvenc -preset:v fast -bf 2 -f rtsp -rtsp_transport tcp rtsp://localhost:554/mystream";// + preset.GetOptions()
-            //    + " \"" + outputPath + "\""
-            
-            // var command = $"-y -f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -re -i - -an -c:v copy -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
+            // VLC udp://@:2222
+            var command = $"-y -f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -re -i - -an -c:v h264_nvenc -g 30 -keyint_min 30 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
 
+           // works
+           // var command = "-f lavfi -i color=color=red:s=1920x1080:r=30 -c:v h264_nvenc -preset:v fast -bf 2 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
 
-            var command = $"-f rawvideo -vcodec rawvideo -pixel_format rgba -colorspace bt709 -video_size {width}x{height} -framerate {frameRate} -c:v h264_nvenc -preset:v fast -bf 2 -f mpegts udp://127.0.0.1:2222?pkt_size=1316";
-
-            // -f lavfi -i color=color=red:s=1920x1080:r=30 
             Debug.Log(command);
             return new FFmpegSession(command);
         }
